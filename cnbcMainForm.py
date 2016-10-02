@@ -32,7 +32,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         # Set up Connections
         self.actionAbout_CNBC.triggered.connect ( self.about )
 
-#TODO Create a contect menu
+#TODO Create a context menu
 #TODO Use the Status bar
 #TODO Create PyQt5 About box
 

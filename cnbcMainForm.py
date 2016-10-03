@@ -11,7 +11,7 @@ import logging.config
 logging.config.fileConfig('./Support/logging.conf')              # create and configure logger
 logger = logging.getLogger('CNBC.MainForm')                      # Set Logger Prefix column
 
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QStatusBar
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QStatusBar, QMenu
 from PyQt5.QtCore import QSettings
 from MainForm import Ui_MainForm
 
@@ -19,6 +19,7 @@ class MainForm(Ui_MainForm, QMainWindow):
     def __init__(self, parent = None):
         super(MainForm, self).__init__(parent)
         self.setupUi ( self )
+        self.showMaximized()
 
         # Log Actions
         logger.debug("Initializing Main Form")
@@ -32,11 +33,23 @@ class MainForm(Ui_MainForm, QMainWindow):
         # Set up Connections
         self.actionAbout_CNBC.triggered.connect ( self.about )
 
-#TODO Create a context menu
-#TODO Use the Status bar
 #TODO Create PyQt5 About box
 
+        # Setup Context Menu
+    def contextMenuEvent(self, event):
+        '''
+        This method creates and displays a context menu for the main window.
+        :param event:
+        :return:
+        '''
+        menu = QMenu ( self )
+        quitAction = menu.addAction ( "Quit" )
+        action = menu.exec_ ( self.mapToGlobal ( event.pos ( ) ) )
+        if action == quitAction:
+            self.close()
+
     def closeEvent(self, event):
+        self.statusBar ( ).showMessage ( 'Confirm You Want to Exit Program...' )
         # Show exit message box
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Question)
@@ -46,6 +59,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         msg.setDefaultButton(QMessageBox.Yes)
 
         reply = msg.exec_ ( )
+        self.statusbar.clearMessage()
         if reply == msg.Yes:
             # We want to quit
             logger.debug ( "*" * 60 )
@@ -62,7 +76,10 @@ class MainForm(Ui_MainForm, QMainWindow):
         This method Builds and displays the programs About dialog.
         :return:
         '''
+        # Post status bar message
+        self.statusBar ( ).showMessage ( 'Displaying the About Box' )
         self.settings = QSettings ( "KnockOut Programmers", 'CNBC' )
+        # build dialog
         msg = QMessageBox ( )
         msg.setIcon ( QMessageBox.Information )
         msg.setText ( "<B><font color = red>About the CNBC Options Action TV Show Audit Tool</B>")
@@ -87,6 +104,10 @@ class MainForm(Ui_MainForm, QMainWindow):
         msg.setStandardButtons ( QMessageBox.Ok )
         msg.setDefaultButton(QMessageBox.Ok)
 
+        #show dialog
         retval = msg.exec_ ( )
+
+        # Clear status bar message
+        self.statusbar.clearMessage()
 
 

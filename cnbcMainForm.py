@@ -13,6 +13,7 @@ logger = logging.getLogger('CNBC.MainForm')                      # Set Logger Pr
 
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QStatusBar, QMenu
 from PyQt5.QtCore import QSettings
+from PyQt5.Qt import QIcon
 from MainForm import Ui_MainForm
 
 class MainForm(Ui_MainForm, QMainWindow):
@@ -20,6 +21,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         super(MainForm, self).__init__(parent)
         self.setupUi ( self )
         self.showMaximized()
+        self.setWindowIcon(QIcon(":/img/CNBC_Program.png"))
 
         # Log Actions
         logger.debug("Initializing Main Form")
@@ -33,8 +35,6 @@ class MainForm(Ui_MainForm, QMainWindow):
         # Set up Connections
         self.actionAbout_CNBC.triggered.connect ( self.about )
 
-#TODO Create PyQt5 About box
-
         # Setup Context Menu
     def contextMenuEvent(self, event):
         '''
@@ -43,10 +43,13 @@ class MainForm(Ui_MainForm, QMainWindow):
         :return:
         '''
         menu = QMenu ( self )
-        quitAction = menu.addAction ( "Quit" )
+        aboutContextAction = menu.addAction ( "About" )
+        quitContextAction = menu.addAction ( "Quit" )
         action = menu.exec_ ( self.mapToGlobal ( event.pos ( ) ) )
-        if action == quitAction:
+        if action == quitContextAction:
             self.close()
+        if action == aboutContextAction:
+            self.about()
 
     def closeEvent(self, event):
         self.statusBar ( ).showMessage ( 'Confirm You Want to Exit Program...' )

@@ -43,6 +43,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         :return:
         '''
         menu = QMenu ( self )
+        newContextAction = menu.addAction ( "New Show" )
         aboutContextAction = menu.addAction ( "About" )
         quitContextAction = menu.addAction ( "Quit" )
         action = menu.exec_ ( self.mapToGlobal ( event.pos ( ) ) )
@@ -50,6 +51,8 @@ class MainForm(Ui_MainForm, QMainWindow):
             self.close()
         if action == aboutContextAction:
             self.about()
+        if action == newContextAction:
+            self.newShow()
 
     def closeEvent(self, event):
         self.statusBar ( ).showMessage ( 'Confirm You Want to Exit Program...' )
@@ -112,5 +115,8 @@ class MainForm(Ui_MainForm, QMainWindow):
 
         # Clear status bar message
         self.statusbar.clearMessage()
+
+    def newShow(self):
+        pass
 
 

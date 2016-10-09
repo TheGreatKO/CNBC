@@ -17,14 +17,12 @@ from pony.orm import *
 db = Database ( )
 
 # Create the Database entities
-
 class People(db.Entity):
     name = Required(str)
     role = Required(str)
 
 # PostgreSQL
 db.bind ( 'postgres', user='ko', password='morgan', host='localhost', database='moaa' )
-
 db.generate_mapping(create_tables=True)
 
 
@@ -50,6 +48,7 @@ class PeopleAdmin(Ui_FormPeopleAdministration, QDialog):
         This method closes dialog
         :return:
         '''
+        logger.debug ( 'Leaving the Person Table Form' )
         self.close()
 
     def setChange(self):

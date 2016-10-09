@@ -4,20 +4,42 @@
 __author__ = 'ko'
 
 import logging.config
+logging.config.fileConfig('./Support/logging.conf')           # create and configure logger
+logger = logging.getLogger('CNBC.NewShow ')                   # Set Logger Prefix column
 
-logging.config.fileConfig('./Support/logging.conf')              # create and configure logger
-logger = logging.getLogger('CNBC.NewShowForm')                   # Set Logger Prefix column
-
-from PyQt5.QtWidgets import QWidget, QAction, QStatusBar, QMenu, QDialog
+from PyQt5.QtWidgets import QWidget, QAction, QStatusBar, QMenu, QDialog, QMessageBox
 from newShowFormDialog import Ui_newShowDialog
 from PyQt5.QtCore import  QDate
 import psycopg2
 from pony.orm import *
 from cnbcPeopleAdminForm import PeopleAdmin
+import psycopg2
+from datetime import date
 
 db = Database ( )
 
 # Create the Database entities
+class Show(db.Entity):
+    createdDate = Required(date)
+    showDate = Required(date)
+    moderator = Required(str)
+    trader1 = Required(str)
+    trader2 = Required(str)
+    trader3 = Optional(str)
+    trader4 = Optional(str)
+    chartist = Optional(str)
+    guest = Optional(str)
+    security1 = Optional(str)
+    security2 = Optional(str)
+    security3 = Optional(str)
+    security4 = Optional(str)
+    security5 = Optional(str)
+    active1 = Required(bool)
+    active2 = Required(bool)
+    active3 = Required(bool)
+    active4 = Required(bool)
+    active5 = Required(bool)
+    showNotes = Optional(str)
 
 class People(db.Entity):
     name = Required(str)
@@ -25,20 +47,7 @@ class People(db.Entity):
 
 # PostgreSQL
 db.bind ( 'postgres', user='ko', password='morgan', host='localhost', database='moaa' )
-
 db.generate_mapping(create_tables=True)
-
-with db_session:
-    '''
-    p =  People ( name='Donald Trump', role = "Moderator")
-    p1 = People ( name='Hillary Clinton', role = "Guest" )
-    p2 = People ( name='Bob Hope', role = "Trader")
-    p3 = People ( name='KO Hanlon', role = "Trader" )
-    p4 = People ( name='Billy Bob', role = "Trader")
-    p5 = People ( name='Ron Caroon', role = "Chartist" )
-    p6 = People ( name='Johnny Carson', role = "Moderator")
-    p7 = People ( name='Susan Hanlon', role = "Chartist" )
-    '''
 
 class NewShowForm(Ui_newShowDialog, QDialog):
     db = Database ( )
@@ -46,10 +55,10 @@ class NewShowForm(Ui_newShowDialog, QDialog):
     def __init__(self, parent = None):
         QDialog.__init__(self, parent)
         self.setupUi ( self )
-        self.startUp()
+        self.startUp ( )
 
         # Log Actions
-        logger.debug ( "Initializing New Show Form")
+        logger.debug ( 'Initializing New Show Form')
 
         # Set up Connections
         self.pushButtonReset.clicked.connect ( self.setDefaults )
@@ -73,11 +82,11 @@ class NewShowForm(Ui_newShowDialog, QDialog):
         self.comboBoxChartist.clear()
         self.comboBoxGuest.clear()
         # Set the LINEEDIT controls
-        self.lineEdiSecurity1.clear()
-        self.lineEdiSecurity2.clear()
-        self.lineEdiSecurity3.clear()
-        self.lineEdiSecurity4.clear()
-        self.lineEdiSecurity5.clear()
+        self.lineEditSecurity1.clear()
+        self.lineEditSecurity2.clear()
+        self.lineEditSecurity3.clear()
+        self.lineEditSecurity4.clear()
+        self.lineEditSecurity5.clear()
         # Set the CHECKBOX controls
         self.checkBoxActive1.setChecked(False)
         self.checkBoxActive2.setChecked(False)
@@ -103,8 +112,113 @@ class NewShowForm(Ui_newShowDialog, QDialog):
         self.close()
 
     def addShowData(self):
+        '''
+        This method captures the data from the cnbcNewShowForm
+        and creates and inserts a record into the Show Table.
+        :return:
+        '''
+        # Log the Actions
         logger.debug ( "Saving New Show Data" )
         logger.debug ( "Leaving New Show Form" )
+
+        # Check for Error conditions
+        # Check for Required Moderator
+        if self.comboBoxModerator.currentText ( ) == ' ':
+            logger.debug ( 'Error in adding a new Show - No Moderator provided' )
+            # build dialog
+            msg = QMessageBox ( )
+            msg.setIcon ( QMessageBox.Critical )
+            msg.setText ( "<B><font color = red>No Moderator Provided - Record Error</B>" )
+            msg.setInformativeText ( "No data in the Moderator field. This field must not be blank and is required." )
+            msg.setWindowTitle ( "Show Record Error" )
+            msg.setStandardButtons ( QMessageBox.Ok )
+            msg.setDefaultButton ( QMessageBox.Ok )
+
+            # show dialog
+            retval = msg.exec_ ( )
+            return
+
+            # Check for Required Trader 1
+        if self.comboBoxTrader1.currentText ( ) == ' ':
+            logger.debug ( 'Error in adding a new Show - No Trader 1 provided' )
+            # build dialog
+            msg = QMessageBox ( )
+            msg.setIcon ( QMessageBox.Critical )
+            msg.setText ( "<B><font color = red>No Trader 1 Provided - Record Error</B>" )
+            msg.setInformativeText ( "No data in the Trader 1 field. This field must not be blank and is required." )
+            msg.setWindowTitle ( "Show Record Error" )
+            msg.setStandardButtons ( QMessageBox.Ok )
+            msg.setDefaultButton ( QMessageBox.Ok )
+
+            # show dialog
+            retval = msg.exec_ ( )
+            return
+
+         # Check for Required Trader 2
+        if self.comboBoxTrader2.currentText ( ) == ' ':
+            logger.debug ( 'Error in adding a new Show - No Trader 2 provided' )
+            # build dialog
+            msg = QMessageBox ( )
+            msg.setIcon ( QMessageBox.Critical )
+            msg.setText ( "<B><font color = red>No Trader 2 Provided - Record Error</B>" )
+            msg.setInformativeText ( "No data in the Trader 2 field. This field must not be blank and is required." )
+            msg.setWindowTitle ( "Show Record Error" )
+            msg.setStandardButtons ( QMessageBox.Ok )
+            msg.setDefaultButton ( QMessageBox.Ok )
+
+            # show dialog
+            retval = msg.exec_ ( )
+            return
+
+        with db_session:
+            temp_var = self.dateEditCreatedDate.date()
+            cd = temp_var.toPyDate ( )
+            temp_var = self.dateEditShowDate.date()
+            sd = temp_var.toPyDate ( )
+            m = self.comboBoxModerator.currentText()
+            t1 = self.comboBoxTrader2.currentText()
+            t2 = self.comboBoxTrader2.currentText()
+            t3 = self.comboBoxTrader3.currentText()
+            t4 = self.comboBoxTrader4.currentText()
+            c = self.comboBoxChartist.currentText()
+            g = self.comboBoxGuest.currentText()
+            s1 = self.lineEditSecurity1.text()
+            s2 = self.lineEditSecurity2.text()
+            s3 = self.lineEditSecurity3.text()
+            s4 = self.lineEditSecurity4.text()
+            s5 = self.lineEditSecurity5.text()
+            a1 = self.checkBoxActive1.isChecked()
+            a2 = self.checkBoxActive2.isChecked()
+            a3 = self.checkBoxActive3.isChecked()
+            a4 = self.checkBoxActive4.isChecked()
+            a5 = self.checkBoxActive5.isChecked()
+            sn = self.textEditShowNotes.toPlainText()
+            s = 'Added the Show Date: {} to the Show Table'.format ( sd )
+            logger.debug ( s )
+
+            # Add the record
+            p = Show ( createdDate=cd,
+                       showDate = sd,
+                       moderator = m,
+                       trader1 = t1,
+                       trader2 = t2,
+                       trader3 = t3,
+                       trader4 = t4,
+                       chartist = c,
+                       guest = g,
+                       security1 = s1,
+                       security2 = s2,
+                       security3 = s3,
+                       security4 = s4,
+                       security5 = s5,
+                       active1 = a1,
+                       active2 = a2,
+                       active3 = a3,
+                       active4 = a4,
+                       active5 = a5,
+                       showNotes = sn)
+            logger.debug ( "Leaving New Show Form after saving data" )
+            self.close ( )
 
     def loadModerator(self):
         self.comboBoxModerator.addItem(" ")
@@ -142,7 +256,7 @@ class NewShowForm(Ui_newShowDialog, QDialog):
         self.f = PeopleAdmin()
         self.f.exec_ ( )
 
+#TODO Refresh Database when coming from the cnbcPeopleAdminForm
 
-#TODO Provide ability to Add, Edit and Delete People Table entities
 
 

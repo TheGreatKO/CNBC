@@ -7,14 +7,46 @@ __version__ = 1.01
 __date__ = "1 Oct 2016"
 
 import logging.config
+logging.config.fileConfig('./Support/logging.conf')             # create and configure logger
 
-logging.config.fileConfig('./Support/logging.conf')              # create and configure logger
-logger = logging.getLogger('CNBC.MainForm')                      # Set Logger Prefix column
-
-from PyQt5.QtWidgets import QMainWindow, QMessageBox, QAction, QStatusBar, QMenu
+from PyQt5.QtWidgets import QMainWindow, QMessageBox,  QMenu
 from PyQt5.QtCore import QSettings
 from PyQt5.Qt import QIcon
 from MainForm import Ui_MainForm
+from cnbcNewShowForm import NewShowForm
+import psycopg2
+from pony.orm import *
+from datetime import date
+
+db = Database ( )
+
+# Create the Database entities
+class Show(db.Entity):
+    createdDate = Required(date)
+    showDate = Required(date)
+    moderator = Required(str)
+    trader1 = Required(str)
+    trader2 = Required(str)
+    trader3 = Optional(str)
+    trader4 = Optional(str)
+    chartist = Optional(str)
+    guest = Optional(str)
+    security1 = Optional(str)
+    security2 = Optional(str)
+    security3 = Optional(str)
+    security4 = Optional(str)
+    security5 = Optional(str)
+    active1 = Required(bool)
+    active2 = Required(bool)
+    active3 = Required(bool)
+    active4 = Required(bool)
+    active5 = Required(bool)
+    showNotes = Optional(str)
+
+# PostgreSQL
+db.bind ( 'postgres', user='ko', password='morgan', host='localhost', database='moaa' )
+
+db.generate_mapping(create_tables=True)
 
 class MainForm(Ui_MainForm, QMainWindow):
     def __init__(self, parent = None):
@@ -24,7 +56,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         self.setWindowIcon(QIcon(":/img/CNBC_Program.png"))
 
         # Log Actions
-        logger.debug("Initializing Main Form")
+        self.setLoggingData()
 
         # Get Settings
         self.settings = QSettings ( "KnockOut Programmers", 'CNBC' )
@@ -34,6 +66,12 @@ class MainForm(Ui_MainForm, QMainWindow):
 
         # Set up Connections
         self.actionAbout_CNBC.triggered.connect ( self.about )
+        self.actionAdd_Show.triggered.connect (self.newShow)
+
+
+    def setLoggingData(self):
+        logger = logging.getLogger ( 'CNBC.MainForm   ' )
+        logger.debug("Initializing Main Form")
 
         # Setup Context Menu
     def contextMenuEvent(self, event):
@@ -43,7 +81,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         :return:
         '''
         menu = QMenu ( self )
-        newContextAction = menu.addAction ( "New Show" )
+        newContextAction = menu.addAction ( "Add Show" )
         aboutContextAction = menu.addAction ( "About" )
         quitContextAction = menu.addAction ( "Quit" )
         action = menu.exec_ ( self.mapToGlobal ( event.pos ( ) ) )
@@ -55,6 +93,13 @@ class MainForm(Ui_MainForm, QMainWindow):
             self.newShow()
 
     def closeEvent(self, event):
+        '''
+        The method confirmss the desire to end the program
+        It posts a message to the for's status bar
+        It builds and displays a message box asking to confirm the end in near
+        :param event:
+        :return:
+        '''
         self.statusBar ( ).showMessage ( 'Confirm You Want to Exit Program...' )
         # Show exit message box
         msg = QMessageBox()
@@ -68,6 +113,7 @@ class MainForm(Ui_MainForm, QMainWindow):
         self.statusbar.clearMessage()
         if reply == msg.Yes:
             # We want to quit
+            logger = logging.getLogger ( 'CNBC.MainForm   ' )
             logger.debug ( "*" * 60 )
             logger.debug ( "Ending the CNBC Program" )
             logger.debug ( "*" * 60 )
@@ -117,6 +163,14 @@ class MainForm(Ui_MainForm, QMainWindow):
         self.statusbar.clearMessage()
 
     def newShow(self):
-        pass
+        self.ns = NewShowForm()
+        self.ns.exec_ ( )
+
+
+
+#TODO Add a menu item to delete logs
+#TODO Put the show into the TreeView
+
+
 
 
